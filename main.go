@@ -1,9 +1,13 @@
 package main
 
 import (
+	"./findsequence"
+	"./googlemaps"
+	"./linenoti"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	uuid "github.com/nu7hatch/gouuid"
 	"log"
 	"net/http"
 )
@@ -41,9 +45,11 @@ func GetAppHealthCheck(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
 func findXYZvalue(w http.ResponseWriter, r *http.Request) {
 	setupResponse(&w, r)
+
+	uuid, _ := uuid.NewV4()
+	linenoti.LineNotification("findXYZvalue web-service is executing with session id " + uuid.String())
 
 	if (*r).Method == "GET" {
 
@@ -54,39 +60,41 @@ func findXYZvalue(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(("findXYZvalue method is executing"))
 
 	var answer Answer
-	answer.X = findSequnceDigit(5)
-	answer.Y = findSequnceDigit(6)
-	answer.Z = findSequnceDigit(7)
+	answer.X = findsequence.FindSequnceDigit(5)
+	answer.Y = findsequence.FindSequnceDigit(6)
+	answer.Z = findsequence.FindSequnceDigit(7)
 	json.NewEncoder(w).Encode(answer)
+
+}
+
+func findRestaurantsBangSue(w http.ResponseWriter, r *http.Request) {
+	setupResponse(&w, r)
+
+	uuid, _ := uuid.NewV4()
+	linenoti.LineNotification("findRestaurantsBangSue web-service is executing with session id " + uuid.String())
+
+	if (*r).Method == "GET" {
+
+	} else if (*r).Method == "POST" {
+		fmt.Println("NOT ALLOW for this method")
+	}
+
+	fmt.Println(("findRestaurantsBangSue method is executing"))
+
+	mapsResponseData := googlemaps.GoogleMapsAPI()
+
+	//fmt.Println(string(responseData))
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprint(w, string(mapsResponseData))
 
 }
 
 func main() {
 	fmt.Println("SCG webservice backend api is executing")
-	//fmt.Print(findXvalue())
-	//fmt.Print(findYvalue())
-	//fmt.Print(findZvalue())
 	router := mux.NewRouter()
 	router.HandleFunc("/App-HealthCheck", GetAppHealthCheck).Methods("GET")
 	router.HandleFunc("/findXYZ", findXYZvalue).Methods("GET")
+	router.HandleFunc("/findRestaurantsBangSue", findRestaurantsBangSue).Methods("GET")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
-func findSequnceDigit(index int) int{
-	n1 := 3
-	n2 := 5
-
-	if index == 0 {
-		return n1
-	}else if index == 1{
-		return n2
-	}
-
-	nTarget := 0
-	for i := 3; i <= index; i++ {
-		nTarget = n1 + n2 + 1
-		n1 = n2
-		n2 = nTarget
-	}
-	return nTarget
-}
